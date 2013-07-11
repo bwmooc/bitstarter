@@ -94,7 +94,7 @@ if (program.url) {
       isFile = false;
       var str =sys.format('%s',result);// buf.toString();
       var checkJson = checkHtmlFile(str, program.checks);
-	sys.puts(result);
+      //sys.puts(result);
       var outJson = JSON.stringify(checkJson, null, 4);
       console.log(outJson);
     });

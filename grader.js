@@ -23,23 +23,23 @@ References:
 */
 
 var fs = require('fs');
-var util = require('util');
+var sys = require('util');
 var rest = require('restler');
 var program = require('commander');
 var cheerio = require('cheerio');
 var HTMLFILE_DEFAULT = "inex.html";
 var CHECKSFILE_DEFAULT = "checks.json";
 var URL_DEFAULT = "http://protected-hollows-9663.herokuapp.com/";
-
+var isFile = true;
 
 
 
 var callThis = function(result) {
 if (data instanceof Error) {
-    util.puts('Error: ' + result.message);
+    sys.puts('Error: ' + result.message);
     this.retry(5000); // try again after 5 sec
   } else {
-    util.puts(result);
+    sys.puts(result);
   }
 };
 
@@ -55,7 +55,10 @@ var assertFileExists = function(infile) {
 var assertUrlExists = function(val){    return val.toString();}
 
 var cheerioHtmlFile = function(htmlfile) {
-    return cheerio.load(fs.readFileSync(htmlfile));
+    if (isFile)
+	return cheerio.load(fs.readFileSync(htmlfile));
+    else
+	return cheerio.load(htmlfile);
 };
 
 var loadChecks = function(checksfile) {
@@ -87,7 +90,11 @@ if(require.main == module) {
         .parse(process.argv);
 if (program.url) {
     rest.get(program.url).on('complete', function(result) {
-      var checkJson = checkHtmlFile(result, program.checks);
+      //var buf = fs.readFileSync(result);
+      isFile = false;
+      var str =sys.format('%s',result);// buf.toString();
+      var checkJson = checkHtmlFile(str, program.checks);
+	sys.puts(result);
       var outJson = JSON.stringify(checkJson, null, 4);
       console.log(outJson);
     });

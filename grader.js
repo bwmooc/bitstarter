@@ -18,14 +18,30 @@ References:
  + JSON
    - http://en.wikipedia.org/wiki/JSON
    - https://developer.mozilla.org/en-US/docs/JSON
-   - https://developer.mozilla.org/en-US/docs/JSON#JSON_in_Firefox_2
+   - https://developer.mozilla.org/en-US/docs/JSON#JSON_in
+   _Firefox_2
 */
 
 var fs = require('fs');
+var util = require('util');
+var rest = require('restler');
 var program = require('commander');
 var cheerio = require('cheerio');
-var HTMLFILE_DEFAULT = "index.html";
+var HTMLFILE_DEFAULT = "inex.html";
 var CHECKSFILE_DEFAULT = "checks.json";
+var URL_DEFAULT = "http://protected-hollows-9663.herokuapp.com/";
+
+
+
+
+var callThis = function(result) {
+if (data instanceof Error) {
+    util.puts('Error: ' + result.message);
+    this.retry(5000); // try again after 5 sec
+  } else {
+    util.puts(result);
+  }
+};
 
 var assertFileExists = function(infile) {
     var instr = infile.toString();
@@ -35,6 +51,8 @@ var assertFileExists = function(infile) {
     }
     return instr;
 };
+
+var assertUrlExists = function(val){    return val.toString();}
 
 var cheerioHtmlFile = function(htmlfile) {
     return cheerio.load(fs.readFileSync(htmlfile));
@@ -65,10 +83,18 @@ if(require.main == module) {
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
+	.option('-u, --url <url>', 'url to check', clone(assertUrlExists), URL_DEFAULT)
         .parse(process.argv);
-    var checkJson = checkHtmlFile(program.file, program.checks);
-    var outJson = JSON.stringify(checkJson, null, 4);
-    console.log(outJson);
+if (program.url) {
+    rest.get(program.url).on('complete', function(result) {
+      var checkJson = checkHtmlFile(result, program.checks);
+      var outJson = JSON.stringify(checkJson, null, 4);
+      console.log(outJson);
+    });
 } else {
-    exports.checkHtmlFile = checkHtmlFile;
+  var checkJson = checkHtmlFile(program.file, program.checks);
+  var outJson = JSON.stringify(checkJson, null, 4);
+  console.log(outJson);
+}
+
 }
